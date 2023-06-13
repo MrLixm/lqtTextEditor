@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "lqttexteditor"
+version = "0.1.0"
+description = "A more advanced text editor for PyQt"
+authors = ["Liam Collod <monsieurlixm@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+PySide2 = "^5.15"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
