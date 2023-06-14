@@ -57,7 +57,7 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
         width = self.fontMetrics().boundingRect("9")
         # hack to take in account font bearing
         width = self.fontMetrics().boundingRect(width, 0, "9").width()
-        max_lines = list(self._lines)[-1] if self._lines else 0
+        max_lines = max(list(self._lines)) if self._lines else 0
         max_lines = max(max_lines, 9999)
         width = width * len(str(max_lines))
         return width + (self.margins_side * 2)
@@ -157,11 +157,12 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         super().__init__(parent)
 
         self._updating_selection: bool = False
+        self._last_added_left_margins: int = 0
 
         self._sidebar = NumberedSideBarWidget(self)
 
         self.updateRequest.connect(self._update_sidebar)
-        self.blockCountChanged.connect(self._update_sidebar_geo)
+        self.blockCountChanged.connect(self._on_block_count_changed)
         self.cursorPositionChanged.connect(self._on_selection_changed)
         self._sidebar.line_selection_changed.connect(self._on_sidebar_lines_changed)
 
@@ -190,6 +191,16 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         end = cursor.selectionEnd()
         cursor.setPosition(end)
         return cursor.blockNumber()
+
+    def _on_block_count_changed(self):
+        self._update_sidebar_geo()
+        current_margins = self.viewportMargins()
+        self.setViewportMargins(
+            current_margins.left(),
+            current_margins.top(),
+            current_margins.right(),
+            current_margins.bottom(),
+        )
 
     def _on_selection_changed(self):
         """
@@ -272,4 +283,15 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         self._update_sidebar_geo()
 
     def setViewportMargins(self, left: int, top: int, right: int, bottom: int):
-        super().setViewportMargins(left + self.sidebar.width(), top, right, bottom)
+        self._last_added_left_margins = self.sidebar.width()
+        super().setViewportMargins(
+            left + self._last_added_left_margins,
+            top,
+            right,
+            bottom,
+        )
+
+    def viewportMargins(self) -> QtCore.QMargins:
+        margins = super().viewportMargins()
+        margins.setLeft(margins.left() - self._last_added_left_margins)
+        return margins
