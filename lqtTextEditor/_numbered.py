@@ -250,7 +250,6 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         """
         Updates lines displayed in the sidebar.
         """
-        block_count = self.blockCount()
         block = self.firstVisibleBlock()
         # starts at 0
         block_index = block.blockNumber()
