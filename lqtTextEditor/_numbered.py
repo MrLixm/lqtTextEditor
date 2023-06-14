@@ -244,6 +244,10 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
 
         self.setTextCursor(cursor)
+
+        scrollbar_h = self.horizontalScrollBar()
+        scrollbar_h.setSliderPosition(scrollbar_h.minimum())
+
         self._updating_selection = False
 
     def _update_sidebar(self):
