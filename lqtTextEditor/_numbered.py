@@ -158,6 +158,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
 
         self._updating_selection: bool = False
         self._last_added_left_margins: int = 0
+        self._tab_character = " " * 4
 
         self._sidebar = NumberedSideBarWidget(self)
 
@@ -279,7 +280,52 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
     def _update_sidebar_geo(self):
         self.sidebar.setGeometry(0, 0, self.sidebar.width(), self.height())
 
+    def _indent_selection(self):
+        cursor = self.textCursor()
+        if not cursor.selectedText():
+            cursor.insertText(self._tab_character)
+            self.setTextCursor(cursor)
+            return
+        for line in range(self.selected_lines_start, self.selected_lines_end + 1):
+            block = self.document().findBlockByLineNumber(line)
+            cursor = QtGui.QTextCursor(block)
+            cursor.insertText(self._tab_character)
+
+    def _unindent_selection(self):
+        cursor = self.textCursor()
+        cursor.setPosition(
+            cursor.position() - len(self._tab_character), cursor.KeepAnchor
+        )
+        for line in range(self.selected_lines_start, self.selected_lines_end + 1):
+            block = self.document().findBlockByLineNumber(line)
+            cursor = QtGui.QTextCursor(block)
+            cursor.setPosition(
+                cursor.position() + len(self._tab_character), cursor.KeepAnchor
+            )
+            if cursor.selectedText() == self._tab_character:
+                cursor.removeSelectedText()
+
+    def set_tab_character(self, character: str):
+        """
+        Change which characters are used to produce a tabulation when pressing the tab key.
+
+        Args:
+            character: anything but usually 4 spaces or the tab character ``\t``
+        """
+        self._tab_character = character
+
     # Overrides
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent):
+        if event.key() == QtCore.Qt.Key_Backtab:
+            self._unindent_selection()
+            return
+
+        elif event.key() == QtCore.Qt.Key_Tab:
+            self._indent_selection()
+            return
+
+        super().keyPressEvent(event)
 
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         super().resizeEvent(event)
