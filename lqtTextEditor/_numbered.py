@@ -11,18 +11,19 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
     to a "line".
 
     Made to work with :class:`LineNumberedTextEditor`
+
+    Line are internally stored as starting from 0 but are displaying as starting from 1.
     """
+
+    line_selection_changed = QtCore.Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._lines: dict[int, QtCore.QRectF] = {}
         """
-        List of line with its respective dimension for each
-        """
-
-        self.active_lines: list[int] = []
-        """
-        List of line index that are selected.
+        List of line with its respective dimension for each.
+        
+        Line number starts at 0.
         """
 
         self.margins_side = 8
@@ -35,10 +36,13 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
         """
         Sequence of line numbers that are selected.
 
-        Can be ascending or descending order. Example : [5,4,3,2]
+        Can be ascending or descending order. Example : [5,4,3,2].
         """
         if self._line_selected_start is None or self._line_selected_end is None:
-            return [self._line_selected_start or -1, self._line_selected_end or -1]
+            # noinspection PyTypeChecker
+            return list(
+                filter(None, [self._line_selected_start, self._line_selected_end])
+            )
 
         direction = 1 if self._line_selected_end > self._line_selected_start else -1
         return list(
@@ -78,24 +82,31 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
                 return line_number
         return None
 
+    def set_selected_lines(self, line_start, line_end):
+        self._line_selected_start = line_start
+        self._line_selected_end = line_end
+        self.update()
+
     # Overrides
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         super().mousePressEvent(event)
         pos = self.mapFromGlobal(self.cursor().pos())
+        self._line_selected_end = None
         self._line_selected_start = self.get_line_from_pos(pos)
+        self.line_selection_changed.emit()
         self.update()
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
         super().mouseMoveEvent(event)
         pos = self.mapFromGlobal(self.cursor().pos())
         self._line_selected_end = self.get_line_from_pos(pos)
+        self.line_selection_changed.emit()
         self.update()
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
         super().mouseReleaseEvent(event)
-        self._line_selected_start = None
-        self._line_selected_end = None
+        self.line_selection_changed.emit()
         self.update()
 
     def paintEvent(self, event: QtGui.QPaintEvent):
@@ -114,11 +125,12 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
         for line_number, line_geo in self._lines.items():
             color_role = QtGui.QPalette.ColorRole.Text
 
-            if (
-                line_number in self.lines_selected_range
-                or line_number in self.active_lines
-            ):
-                qpainter.fillRect(line_geo, self.palette().foreground())
+            if line_number in self.lines_selected_range:
+                highlight_color = self.palette().foreground()
+                highlight_color.setColor(
+                    QtGui.QColor(*highlight_color.color().toTuple()[:-1], 20)
+                )
+                qpainter.fillRect(line_geo, highlight_color)
                 color_role = QtGui.QPalette.ColorRole.HighlightedText
 
             text_geo = line_geo.adjusted(self.margins_side, 0, -self.margins_side, 0)
@@ -143,11 +155,15 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self._updating_selection: bool = False
+
         self._sidebar = NumberedSideBarWidget(self)
 
         self.updateRequest.connect(self._update_sidebar)
         self.blockCountChanged.connect(self._update_sidebar_geo)
         self.cursorPositionChanged.connect(self._on_selection_changed)
+        self._sidebar.line_selection_changed.connect(self._on_sidebar_lines_changed)
 
         self.setViewportMargins(0, 0, 0, 0)
 
@@ -156,26 +172,76 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         return self._sidebar
 
     @property
-    def selected_lines(self) -> list[int]:
+    def selected_lines_start(self) -> int:
         """
-        List of lines number selected.
+        Line number of the beginning of the selection
         """
-        start = self.textCursor().selectionStart()
-        end = self.textCursor().selectionEnd()
         cursor = self.textCursor()
+        start = cursor.selectionStart()
         cursor.setPosition(start)
-        start_line = cursor.blockNumber()
+        return cursor.blockNumber()
+
+    @property
+    def selected_lines_end(self) -> int:
+        """
+        Line number of the end of the selection
+        """
+        cursor = self.textCursor()
+        end = cursor.selectionEnd()
         cursor.setPosition(end)
-        end_line = cursor.blockNumber()
-        active_lines = list(range(start_line, end_line + 1))
-        return active_lines
+        return cursor.blockNumber()
 
     def _on_selection_changed(self):
-        self.sidebar.active_lines = self.selected_lines
+        """
+        Callback when this text cursor change.
+        """
+        if self._updating_selection:
+            return
+
+        self.sidebar.set_selected_lines(
+            self.selected_lines_start,
+            self.selected_lines_end,
+        )
+
+    def _on_sidebar_lines_changed(self):
+        """
+        Propagate the range of line selected in the sidebar to this text cursor.
+        """
+        self._updating_selection = True
+
+        selected_lines = self.sidebar.lines_selected_range
+
+        if not selected_lines:
+            self._updating_selection = False
+            self._on_selection_changed()
+            return
+
+        start = min(selected_lines)
+        end = max(selected_lines)
+
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.setPosition(0)
+
+        ntimes = start - cursor.blockNumber()
+        cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor, ntimes)
+
+        if end > start:
+            ntimes = end - cursor.blockNumber()
+            cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor, ntimes)
+
+        cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
+        self._updating_selection = False
 
     def _update_sidebar(self):
+        """
+        Updates lines displayed in the sidebar.
+        """
         block_count = self.blockCount()
         block = self.firstVisibleBlock()
+        # starts at 0
         block_index = block.blockNumber()
 
         self.sidebar.clear_lines()
@@ -194,10 +260,6 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         self.sidebar.setGeometry(0, 0, self.sidebar.width(), self.height())
 
     # Overrides
-
-    def mousePressEvent(self, event: QtGui.QMouseEvent):
-        super().mousePressEvent(event)
-        print(self.cursor().pos())
 
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         super().resizeEvent(event)
