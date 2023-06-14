@@ -246,11 +246,17 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
 
         self.sidebar.clear_lines()
 
-        while block.isValid() and block_index <= block_count:
+        while block.isValid():
             block_geo = self.blockBoundingGeometry(block)
             block_geo = block_geo.translated(self.contentOffset())
             block_geo.setX(0)
-            self.sidebar.add_line(block_index, block_geo)
+
+            if block_geo.bottom() > self.viewport().geometry().bottom():
+                break
+
+            if block.isVisible():
+                self.sidebar.add_line(block_index, block_geo)
+
             block = block.next()
             block_index += 1
 
