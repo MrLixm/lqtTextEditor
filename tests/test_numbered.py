@@ -32,14 +32,20 @@ app = QtWidgets.QApplication()
 
 widget_main = QtWidgets.QWidget()
 layout_main = QtWidgets.QVBoxLayout()
+layout_header = QtWidgets.QHBoxLayout()
 widget = lqtTextEditor.LineNumberedTextEditor()
 widget2 = lqtTextEditor.LineNumberedTextEditor()
 widget3 = lqtTextEditor.LineNumberedTextEditor()
+btn_hide = QtWidgets.QPushButton("Hide")
+btn_show = QtWidgets.QPushButton("Show")
 
 widget_main.setLayout(layout_main)
+layout_main.addLayout(layout_header)
 layout_main.addWidget(widget)
 layout_main.addWidget(widget2)
 layout_main.addWidget(widget3)
+layout_header.addWidget(btn_hide)
+layout_header.addWidget(btn_show)
 
 for _widget in [widget, widget2]:
     _widget.setPlainText(demoText)
@@ -50,6 +56,19 @@ for _widget in [widget, widget2]:
 
 widget2.setLineWrapMode(widget2.NoWrap)
 widget3.setPlainText(demoText * 10000)
+
+
+def callback1():
+    widget.hide_lines(list(range(8, 16)))
+
+
+def callback2():
+    widget.show_lines()
+
+
+btn_hide.clicked.connect(callback1)
+btn_show.clicked.connect(callback2)
+
 
 stime = time.time()
 widget3.hide_lines(list(range(25, 100000)))

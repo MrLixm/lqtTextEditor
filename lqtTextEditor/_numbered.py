@@ -329,6 +329,10 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
             block = self.document().findBlockByNumber(line)
             block.setVisible(False)
 
+        # HACK to trigger a FULL ui refresh, update() doesn't work.
+        self.resize(self.width() - 1, self.height())
+        self.resize(self.width() + 1, self.height())
+
     def show_lines(self, lines: Optional[list[int]] = None):
         """
         Make the given lines visible again.
@@ -339,6 +343,10 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         for line in lines:
             block = self.document().findBlockByNumber(line)
             block.setVisible(True)
+
+        # HACK to trigger a FULL ui refresh, update() doesn't work.
+        self.resize(self.width() - 1, self.height())
+        self.resize(self.width() + 1, self.height())
 
     # Overrides
 
