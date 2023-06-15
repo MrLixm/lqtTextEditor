@@ -53,12 +53,11 @@ class LineSideBarWidget(QtWidgets.QWidget):
             )
         )
 
-    def get_intended_width(self) -> int:
+    def get_intended_width(self, max_line) -> int:
         width = self.fontMetrics().boundingRect("9")
         # hack to take in account font bearing
         width = self.fontMetrics().boundingRect(width, 0, "9").width()
-        max_lines = max(list(self._lines)) if self._lines else 0
-        max_lines = max(max_lines, 9999)
+        max_lines = max(max_line, 9999)
         width = width * len(str(max_lines))
         return width + (self.margins_side * 2)
 
@@ -157,7 +156,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         super().__init__(parent)
 
         self._updating_selection: bool = False
-        self._last_added_left_margins: int = 0
+        self._left_margin: int = 0
         self._tab_character = " " * 4
 
         self._sidebar = LineSideBarWidget(self)
@@ -167,7 +166,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self.cursorPositionChanged.connect(self._on_selection_changed)
         self._sidebar.line_selection_changed.connect(self._on_sidebar_lines_changed)
 
-        self.setViewportMargins(0, 0, 0, 0)
+        self._update_margins()
 
     @property
     def selected_lines_start(self) -> int:
@@ -191,13 +190,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def _on_block_count_changed(self):
         self._update_sidebar_geo()
-        current_margins = self.viewportMargins()
-        self.setViewportMargins(
-            current_margins.left(),
-            current_margins.top(),
-            current_margins.right(),
-            current_margins.bottom(),
-        )
+        self._update_margins()
 
     def _on_selection_changed(self):
         """
@@ -242,6 +235,15 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
 
         self._updating_selection = False
 
+    def _update_margins(self):
+        current_margins = self.viewportMargins()
+        self.setViewportMargins(
+            self._sidebar.get_intended_width(self.blockCount()) + self._left_margin,
+            current_margins.top(),
+            current_margins.right(),
+            current_margins.bottom(),
+        )
+
     def _update_sidebar(self):
         """
         Updates lines displayed in the sidebar.
@@ -270,7 +272,10 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def _update_sidebar_geo(self):
         self._sidebar.setGeometry(
-            0, 0, self._sidebar.get_intended_width(), self.height()
+            0,
+            0,
+            self._sidebar.get_intended_width(self.blockCount()),
+            self.height(),
         )
 
     def _indent_selection(self):
@@ -297,6 +302,15 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
             )
             if cursor.selectedText() == self._tab_character:
                 cursor.removeSelectedText()
+
+    def set_left_margin(self, margin: int):
+        """
+        Set the margin size for the left side of the viewport.
+
+        Necessary because the teh sidebar already override it.
+        """
+        self._left_margin = margin
+        self._update_margins()
 
     def set_tab_character(self, character: str):
         """
@@ -366,17 +380,3 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         super().resizeEvent(event)
         self._update_sidebar_geo()
-
-    def setViewportMargins(self, left: int, top: int, right: int, bottom: int):
-        self._last_added_left_margins = self._sidebar.get_intended_width()
-        super().setViewportMargins(
-            left + self._last_added_left_margins,
-            top,
-            right,
-            bottom,
-        )
-
-    def viewportMargins(self) -> QtCore.QMargins:
-        margins = super().viewportMargins()
-        margins.setLeft(margins.left() - self._last_added_left_margins)
-        return margins

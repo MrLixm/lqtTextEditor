@@ -55,6 +55,7 @@ for _widget in [widget, widget2]:
     )
 
 widget2.setLineWrapMode(widget2.NoWrap)
+widget2.set_left_margin(15)
 widget3.setPlainText(demoText * 10000)
 
 
