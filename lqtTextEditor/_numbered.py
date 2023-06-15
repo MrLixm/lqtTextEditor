@@ -227,12 +227,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         start = min(selected_lines)
         end = max(selected_lines)
 
-        cursor = self.textCursor()
-        cursor.clearSelection()
-        cursor.setPosition(0)
-
-        ntimes = start - cursor.blockNumber()
-        cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor, ntimes)
+        cursor = QtGui.QTextCursor(self.document().findBlockByNumber(start))
 
         if end > start:
             ntimes = end - cursor.blockNumber()
