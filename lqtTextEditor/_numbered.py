@@ -253,14 +253,14 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._sidebar.clear_lines()
 
         while block.isValid():
-            block_geo = self.blockBoundingGeometry(block)
-            block_geo = block_geo.translated(self.contentOffset())
-            block_geo.setX(0)
-
-            if block_geo.bottom() > self.viewport().geometry().bottom():
-                break
-
             if block.isVisible():
+                block_geo = self.blockBoundingGeometry(block)
+                block_geo = block_geo.translated(self.contentOffset())
+                block_geo.setX(0)
+
+                if block_geo.bottom() > self.viewport().geometry().bottom():
+                    break
+
                 self._sidebar.add_line(block_index, block_geo)
 
             block = block.next()
