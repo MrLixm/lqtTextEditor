@@ -39,8 +39,10 @@ layout_main.addWidget(widget2)
 
 for _widget in [widget, widget2]:
     _widget.setPlainText(demoText)
-    _widget.setStyleSheet("background-color: rgb(180,180,180);")
-    _widget.sidebar.setStyleSheet("border-right: 1px solid rgba(255,255,255, 0.5);")
+    _widget.setStyleSheet(
+        "QWidget.LineNumberedTextEditor{background-color: rgb(180,180,180);}"
+        "QWidget.NumberedSideBarWidget{border-right: 1px solid rgba(255,255,255, 0.5);}"
+    )
 
 widget2.setLineWrapMode(widget2.NoWrap)
 

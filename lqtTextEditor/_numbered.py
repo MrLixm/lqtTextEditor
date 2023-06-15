@@ -170,10 +170,6 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         self.setViewportMargins(0, 0, 0, 0)
 
     @property
-    def sidebar(self) -> NumberedSideBarWidget:
-        return self._sidebar
-
-    @property
     def selected_lines_start(self) -> int:
         """
         Line number of the beginning of the selection
@@ -210,7 +206,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         if self._updating_selection:
             return
 
-        self.sidebar.set_selected_lines(
+        self._sidebar.set_selected_lines(
             self.selected_lines_start,
             self.selected_lines_end,
         )
@@ -221,7 +217,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         """
         self._updating_selection = True
 
-        selected_lines = self.sidebar.lines_selected_range
+        selected_lines = self._sidebar.lines_selected_range
 
         if not selected_lines:
             self._updating_selection = False
@@ -259,7 +255,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         # starts at 0
         block_index = block.blockNumber()
 
-        self.sidebar.clear_lines()
+        self._sidebar.clear_lines()
 
         while block.isValid():
             block_geo = self.blockBoundingGeometry(block)
@@ -270,15 +266,15 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
                 break
 
             if block.isVisible():
-                self.sidebar.add_line(block_index, block_geo)
+                self._sidebar.add_line(block_index, block_geo)
 
             block = block.next()
             block_index += 1
 
-        self.sidebar.update()
+        self._sidebar.update()
 
     def _update_sidebar_geo(self):
-        self.sidebar.setGeometry(0, 0, self.sidebar.width(), self.height())
+        self._sidebar.setGeometry(0, 0, self._sidebar.width(), self.height())
 
     def _indent_selection(self):
         cursor = self.textCursor()
@@ -332,7 +328,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         self._update_sidebar_geo()
 
     def setViewportMargins(self, left: int, top: int, right: int, bottom: int):
-        self._last_added_left_margins = self.sidebar.width()
+        self._last_added_left_margins = self._sidebar.width()
         super().setViewportMargins(
             left + self._last_added_left_margins,
             top,
