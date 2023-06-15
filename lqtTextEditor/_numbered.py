@@ -53,7 +53,7 @@ class LineSideBarWidget(QtWidgets.QWidget):
             )
         )
 
-    def width(self) -> int:
+    def get_intended_width(self) -> int:
         width = self.fontMetrics().boundingRect("9")
         # hack to take in account font bearing
         width = self.fontMetrics().boundingRect(width, 0, "9").width()
@@ -269,7 +269,9 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._sidebar.update()
 
     def _update_sidebar_geo(self):
-        self._sidebar.setGeometry(0, 0, self._sidebar.width(), self.height())
+        self._sidebar.setGeometry(
+            0, 0, self._sidebar.get_intended_width(), self.height()
+        )
 
     def _indent_selection(self):
         cursor = self.textCursor()
@@ -366,7 +368,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._update_sidebar_geo()
 
     def setViewportMargins(self, left: int, top: int, right: int, bottom: int):
-        self._last_added_left_margins = self._sidebar.width()
+        self._last_added_left_margins = self._sidebar.get_intended_width()
         super().setViewportMargins(
             left + self._last_added_left_margins,
             top,
