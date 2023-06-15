@@ -1,4 +1,5 @@
 import sys
+import time
 
 from Qt import QtCore
 from Qt import QtGui
@@ -7,10 +8,10 @@ from Qt import QtWidgets
 import lqtTextEditor
 
 
-demoText = """barbatus, fortis frondators virtualiter anhelare de rusticus, azureus castor.
-messis cito ducunt ad clemens visus.
-fidelis, clemens amors recte locus de pius, brevis navis.
-trabem cito ducunt ad altus cursus.
+demoText = """one barbatus, fortis frondators virtualiter anhelare de rusticus, azureus castor.
+two messis cito ducunt ad clemens visus.
+three fidelis, clemens amors recte locus de pius, brevis navis.
+four trabem cito ducunt ad altus cursus.
 magnum, secundus homos aliquando prensionem de placidus, bi-color magister.
 cum rumor tolerare, omnes cottaes pugna noster, albus brabeutaes.
 ubi est azureus pes?
@@ -23,7 +24,8 @@ cum deus assimilant, omnes decores gratia domesticus, regius fermiumes.
 magnum, fidelis repressors saepe reperire de camerarius, alter assimilatio.
 exemplar de bi-color ausus, perdere axona!
 sunt tumultumquees imperium bassus, peritus cottaes.
-dexter, alter cursuss grauiter reperire de velox, gratis sensorem."""
+dexter, alter cursuss grauiter reperire de velox, gratis sensorem.
+"""
 
 
 app = QtWidgets.QApplication()
@@ -32,10 +34,12 @@ widget_main = QtWidgets.QWidget()
 layout_main = QtWidgets.QVBoxLayout()
 widget = lqtTextEditor.LineNumberedTextEditor()
 widget2 = lqtTextEditor.LineNumberedTextEditor()
+widget3 = lqtTextEditor.LineNumberedTextEditor()
 
 widget_main.setLayout(layout_main)
 layout_main.addWidget(widget)
 layout_main.addWidget(widget2)
+layout_main.addWidget(widget3)
 
 for _widget in [widget, widget2]:
     _widget.setPlainText(demoText)
@@ -45,6 +49,19 @@ for _widget in [widget, widget2]:
     )
 
 widget2.setLineWrapMode(widget2.NoWrap)
+widget3.setPlainText(demoText * 10000)
+
+stime = time.time()
+widget3.hide_lines(list(range(25, 100000)))
+print(time.time() - stime)
+
+stime = time.time()
+widget3.show_lines()
+print(time.time() - stime)
+
+stime = time.time()
+widget3.isolate_lines(list(range(5, 90000)))
+print(time.time() - stime)
 
 widget_main.resize(500, 300)
 widget_main.show()

@@ -305,6 +305,41 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         """
         self._tab_character = character
 
+    def isolate_lines(self, lines: list[int]):
+        """
+        Make visible only the given lines number.
+
+        Args:
+            lines: list of line numbers. starts at 0.
+        """
+        all_lines = set(range(self.blockCount()))
+        lines_to_hide = list(all_lines.difference(set(lines)))
+        lines_to_hide.sort()
+        self.show_lines(lines)
+        self.hide_lines(lines_to_hide)
+
+    def hide_lines(self, lines: list[int]):
+        """
+        Hide the given lines number.
+
+        Args:
+            lines: list of line numbers. starts at 0.
+        """
+        for line in lines:
+            block = self.document().findBlockByNumber(line)
+            block.setVisible(False)
+
+    def show_lines(self, lines: Optional[list[int]] = None):
+        """
+        Make the given lines visible again.
+
+        Pass None to show all lines.
+        """
+        lines = lines or list(range(self.blockCount()))
+        for line in lines:
+            block = self.document().findBlockByNumber(line)
+            block.setVisible(True)
+
     # Overrides
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
