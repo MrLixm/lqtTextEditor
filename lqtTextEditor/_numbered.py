@@ -5,7 +5,7 @@ from Qt import QtCore
 from Qt import QtWidgets
 
 
-class NumberedSideBarWidget(QtWidgets.QWidget):
+class LineSideBarWidget(QtWidgets.QWidget):
     """
     A vertical widget displaying a sequence of numbers, where one numeber is associated
     to a "line".
@@ -146,7 +146,7 @@ class NumberedSideBarWidget(QtWidgets.QWidget):
             )
 
 
-class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
+class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
     """
     A regular text edit but that display the line number on the left of each line.
 
@@ -160,7 +160,7 @@ class LineNumberedTextEditor(QtWidgets.QPlainTextEdit):
         self._last_added_left_margins: int = 0
         self._tab_character = " " * 4
 
-        self._sidebar = NumberedSideBarWidget(self)
+        self._sidebar = LineSideBarWidget(self)
 
         self.updateRequest.connect(self._update_sidebar)
         self.blockCountChanged.connect(self._on_block_count_changed)

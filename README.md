@@ -2,7 +2,7 @@
 
 More complexes text editor in PyQt.
 
-# LineNumberedTextEditor
+# LinePlainTextEdit
 
 Works well for code editing. Add suport for :
 - line numbering in sidebar

@@ -33,9 +33,9 @@ app = QtWidgets.QApplication()
 widget_main = QtWidgets.QWidget()
 layout_main = QtWidgets.QVBoxLayout()
 layout_header = QtWidgets.QHBoxLayout()
-widget = lqtTextEditor.LineNumberedTextEditor()
-widget2 = lqtTextEditor.LineNumberedTextEditor()
-widget3 = lqtTextEditor.LineNumberedTextEditor()
+widget = lqtTextEditor.LinePlainTextEdit()
+widget2 = lqtTextEditor.LinePlainTextEdit()
+widget3 = lqtTextEditor.LinePlainTextEdit()
 btn_hide = QtWidgets.QPushButton("Hide")
 btn_show = QtWidgets.QPushButton("Show")
 
@@ -50,8 +50,8 @@ layout_header.addWidget(btn_show)
 for _widget in [widget, widget2]:
     _widget.setPlainText(demoText)
     _widget.setStyleSheet(
-        "QWidget.LineNumberedTextEditor{background-color: rgb(180,180,180);}"
-        "QWidget.NumberedSideBarWidget{border-right: 1px solid rgba(255,255,255, 0.5);}"
+        f"QWidget.{lqtTextEditor.LinePlainTextEdit.__name__}{{background-color: rgb(180,180,180);}}"
+        f"QWidget.{lqtTextEditor.LineSideBarWidget.__name__}{{border-right: 1px solid rgba(255,255,255, 0.5);}}"
     )
 
 widget2.setLineWrapMode(widget2.NoWrap)
