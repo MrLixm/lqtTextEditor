@@ -10,7 +10,7 @@ Works well for code editing. Add suport for :
 - indentation and unindentation with custom characters
 - line hiding/showing/isolating
 
-![demo gif of using the LinenumberedTextEditor](.\doc\img\LinenumberedTextEditor.demo.gif)
+![demo gif of using the LinenumberedTextEditor](./doc/img/LinenumberedTextEditor.demo.gif)
 
 See [test_numbered.py](tests/test_numbered.py) for an example.
 
