@@ -1,25 +1,46 @@
 # lqtTextEditor
 
-More complexes text editor in PyQt.
+More advanced text editor in PyQt.
+
+## Compatibility
+
+- [`Qt.py`](https://github.com/mottosso/Qt.py) Is being used to handle compatibility
+between different Qt versions.
+- code can be ported to python2 if necessary, there is only type hints and super
+calls to change.
 
 # LinePlainTextEdit
 
-Works well for code editing. Add suport for :
+Works well for code editing. Features :
 - line numbering in sidebar
   - range selection of lines from the sidebar 
 - indentation and unindentation with custom characters
 - line hiding/showing/isolating
+- "Jump to Line" dialog on Ctrl+G
+- no performance difference with regular QPlainTextEdit widget.
+  - performance hit when you have a lot of line hided at the end of the document and you scroll to the bottom
+
+> Note : Line numbers are visually expressed starting from 1, but starts from 0 in the code.
 
 ![demo gif of using the LinenumberedTextEditor](./doc/img/LinenumberedTextEditor.demo.gif)
 
-See [test_numbered.py](tests/test_numbered.py) for an example.
+See [test_linePlainTextEdit.py](tests/test_linePlainTextEdit.py) for an example.
+
+## Usage
+
+```python
+import lqtTextEditor
+
+editor = lqtTextEditor.LinePlainTextEdit()
+editor.setPlainText("Hello world !")
+```
 
 ## Styling 
 
 With stylesheet :
 
 ```css
-/*dark theme*/
+/*dark pastel theme*/
 QWidget.LineSideBarWidget{
   font-family: monospace;
   color: rgb(150,150,150);
