@@ -41,11 +41,12 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
         Can be ascending or descending order. Example : [5,4,3,2].
         """
-        if self._line_selected_start is None or self._line_selected_end is None:
-            # noinspection PyTypeChecker
-            return list(
-                filter(None, [self._line_selected_start, self._line_selected_end])
-            )
+        if self._line_selected_start is None and self._line_selected_end is None:
+            return []
+        elif self._line_selected_start is None and self._line_selected_end is not None:
+            return [self._line_selected_end]
+        elif self._line_selected_end is None and self._line_selected_start is not None:
+            return [self._line_selected_start]
 
         direction = 1 if self._line_selected_end > self._line_selected_start else -1
         return list(
