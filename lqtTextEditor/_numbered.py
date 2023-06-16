@@ -395,13 +395,15 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self.show_lines(lines)
         self.hide_lines(lines_to_hide)
 
-    def hide_lines(self, lines: list[int]):
+    def hide_lines(self, lines: Optional[list[int]] = None):
         """
         Hide the given lines number.
 
         Args:
             lines: list of line numbers. starts at 0.
         """
+        lines = lines or range(self.blockCount())
+
         for line in lines:
             block = self.document().findBlockByNumber(line)
             block.setVisible(False)
