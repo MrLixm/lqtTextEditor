@@ -123,8 +123,10 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         Updates lines displayed in the sidebar.
         """
         block = self.firstVisibleBlock()
-        # starts at 0
+        # first visible block number might not be 0 !
         block_index = block.blockNumber()
+        # take in account padding from style
+        top_margin = self.rect().top() - self.contentsRect().top()
 
         self._sidebar.clear_lines()
 
@@ -133,6 +135,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
                 block_geo = self.blockBoundingGeometry(block)
                 block_geo = block_geo.translated(self.contentOffset())
                 block_geo.setX(0)
+                block_geo.translate(0, -top_margin)
 
                 if block_geo.bottom() > self.viewport().geometry().bottom():
                     break
