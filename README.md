@@ -56,21 +56,13 @@ QWidget.LineSideBarWidget::item{
 QWidget.LineSideBarWidget::item:hover{
     background-color: rgb(65,65,70);
 }
-/* also :first and :last (for visible lines) */
-QWidget.LineSideBarWidget::item:first{
-    background-color: qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 0.8, stop: 0 rgb(50,50,150, 150), stop: 1 rgb(0,0,0,0)
-    );
-}
-QWidget.LineSideBarWidget::item:last{
-    background-color: qlineargradient(
-        x1: 0, y1: 0.8, x2: 0, y2: 0, stop: 0 rgb(50,50,150, 150), stop: 1 rgb(0,0,0,0)
-    );
-}
-/* and :pressed ! */
-QWidget.LineSideBarWidget::item:pressed{
-    background-color: rgb(65,65,90);
-}
+/* and also :                   */
+/* ::item:first (of visible lines)    */
+/* ::item:last  (of visible lines)    */
+/* ::item:pressed                     */
+/* ::item:selected                    */
+
+/* behave mostly like a regular QPlainTextEdit */
 QWidget.LinePlainTextEdit{
   font-family: monospace;
   color: rgb(200,200,200);
