@@ -151,6 +151,8 @@ class LineSideBarWidget(QtWidgets.QWidget):
         )
 
         for line_number, line_geo in self._lines.items():
+            color_role = QtGui.QPalette.ColorRole.Text
+
             qstyleoption = QtWidgets.QStyleOptionViewItem()
             qstyleoption.initFrom(self)
             qstyleoption.rect = line_geo.toRect()
@@ -175,9 +177,22 @@ class LineSideBarWidget(QtWidgets.QWidget):
                 qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.End
             else:
                 qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.Invalid
-
+            # configure for :pressed
             if line_has_focus and self._mouse_pressed:
                 qstyleoption.state = qstyleoption.state | QtWidgets.QStyle.State_Sunken
+            # configure for :selected
+            if line_number in self.lines_selected_range:
+                qstyleoption.state = (
+                    qstyleoption.state | QtWidgets.QStyle.State_Selected
+                )
+                # we draw first using the palette so if no stylesheet, we still
+                # have an effect visible
+                highlight_color = self.palette().text()
+                highlight_color.setColor(
+                    QtGui.QColor(*highlight_color.color().toTuple()[:-1], 30)
+                )
+                qpainter.fillRect(line_geo, highlight_color)
+                color_role = QtGui.QPalette.ColorRole.HighlightedText
 
             # draw line's cell
             self.style().drawPrimitive(
@@ -186,16 +201,6 @@ class LineSideBarWidget(QtWidgets.QWidget):
                 qpainter,
                 self,
             )
-
-            color_role = QtGui.QPalette.ColorRole.Text
-
-            if line_number in self.lines_selected_range:
-                highlight_color = self.palette().foreground()
-                highlight_color.setColor(
-                    QtGui.QColor(*highlight_color.color().toTuple()[:-1], 20)
-                )
-                qpainter.fillRect(line_geo, highlight_color)
-                color_role = QtGui.QPalette.ColorRole.HighlightedText
 
             text_geo = line_geo.adjusted(self.margins_side, 0, -self.margins_side, 0)
 
