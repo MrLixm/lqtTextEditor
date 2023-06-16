@@ -1,3 +1,4 @@
+import contextlib
 import sys
 import time
 
@@ -32,58 +33,86 @@ app = QtWidgets.QApplication()
 
 widget_main = QtWidgets.QWidget()
 layout_main = QtWidgets.QVBoxLayout()
-layout_header = QtWidgets.QHBoxLayout()
-widget = lqtTextEditor.LinePlainTextEdit()
-widget2 = lqtTextEditor.LinePlainTextEdit()
-widget3 = lqtTextEditor.LinePlainTextEdit()
-btn_hide = QtWidgets.QPushButton("Hide")
-btn_show = QtWidgets.QPushButton("Show")
-
 widget_main.setLayout(layout_main)
-layout_main.addLayout(layout_header)
-layout_main.addWidget(widget)
-layout_main.addWidget(widget2)
-layout_main.addWidget(widget3)
-layout_header.addWidget(btn_hide)
-layout_header.addWidget(btn_show)
-
-for _widget in [widget, widget2]:
-    _widget.setPlainText(demoText)
-    _widget.setStyleSheet(
-        f"QWidget.{lqtTextEditor.LinePlainTextEdit.__name__}{{background-color: rgb(180,180,180);}}"
-        f"QWidget.{lqtTextEditor.LineSideBarWidget.__name__}{{border-right: 1px solid rgba(255,255,255, 0.5);}}"
-    )
-
-widget2.setLineWrapMode(widget2.NoWrap)
-widget2.set_left_margin(15)
-widget3.setPlainText(demoText * 10000)
 
 
-def callback1():
-    widget.hide_lines(list(range(8, 16)))
+@contextlib.contextmanager
+def time_it(op_name=""):
+    start_time = time.time()
+    try:
+        yield
+    finally:
+        print(f"{op_name} finished in {round(time.time() - start_time, 6)}s")
 
 
-def callback2():
-    widget.show_lines()
+def test_main():
+    layout_header = QtWidgets.QHBoxLayout()
+    widget = lqtTextEditor.LinePlainTextEdit()
+    widget2 = lqtTextEditor.LinePlainTextEdit()
+    widget3 = lqtTextEditor.LinePlainTextEdit()
+    btn_hide = QtWidgets.QPushButton("Hide")
+    btn_show = QtWidgets.QPushButton("Show")
+
+    layout_main.addLayout(layout_header)
+    layout_main.addWidget(widget)
+    layout_main.addWidget(widget2)
+    layout_main.addWidget(widget3)
+    layout_header.addWidget(btn_hide)
+    layout_header.addWidget(btn_show)
+
+    for _widget in [widget, widget2]:
+        _widget.setPlainText(demoText)
+        _widget.setStyleSheet(
+            f"QWidget.{lqtTextEditor.LinePlainTextEdit.__name__}{{background-color: rgb(180,180,180);}}"
+            f"QWidget.{lqtTextEditor.LineSideBarWidget.__name__}{{border-right: 1px solid rgba(255,255,255, 0.5);}}"
+        )
+
+    widget2.setLineWrapMode(widget2.NoWrap)
+    widget2.set_left_margin(15)
+
+    widget3text = demoText * 100000
+    size = len(widget3text.encode("utf-8")) / 1024**2
+    print(f"about to load {size}Mb in widget3")
+
+    with time_it("setPlainText"):
+        widget3.setPlainText(widget3text)
+
+    def callback1():
+        widget.hide_lines(list(range(8, 16)))
+
+    def callback2():
+        widget.show_lines()
+
+    btn_hide.clicked.connect(callback1)
+    btn_show.clicked.connect(callback2)
+
+    with time_it("hide_lines"):
+        widget3.hide_lines(list(range(25, 100000)))
+
+    with time_it("show_lines"):
+        widget3.show_lines()
+
+    with time_it("isolate_lines"):
+        widget3.isolate_lines(list(range(5, 90000)))
 
 
-btn_hide.clicked.connect(callback1)
-btn_show.clicked.connect(callback2)
+def test_qtwidgets():
+    widget = QtWidgets.QPlainTextEdit()
+    layout_main.addWidget(widget)
+
+    heavy_text = demoText * 100000
+    size = len(heavy_text.encode("utf-8")) / 1024**2
+    print(f"about to load {size}Mb in QPlainTextEdit")
+
+    with time_it("setPlainText"):
+        widget.setPlainText(heavy_text)
 
 
-stime = time.time()
-widget3.hide_lines(list(range(25, 100000)))
-print(time.time() - stime)
+if __name__ == "__main__":
+    test_main()
+    # test_qtwidgets()
 
-stime = time.time()
-widget3.show_lines()
-print(time.time() - stime)
+    widget_main.resize(500, 300)
+    widget_main.show()
 
-stime = time.time()
-widget3.isolate_lines(list(range(5, 90000)))
-print(time.time() - stime)
-
-widget_main.resize(500, 300)
-widget_main.show()
-
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
