@@ -29,6 +29,15 @@ class LineSideBarWidget(QtWidgets.QWidget):
         Line number starts at 0.
         """
 
+        self._lines_numbers: list[int] = []
+        """
+        Ordered list of all the line numbers.
+        
+        Mainly to keep compatibility with python 2 which have unordered dicts.
+        """
+
+        self._mouse_pressed: bool = False
+
         self.margins_side = 8
 
         self._line_selected_start: Optional[int] = None
@@ -70,9 +79,12 @@ class LineSideBarWidget(QtWidgets.QWidget):
     def add_line(self, number: int, dimension: QtCore.QRectF):
         dimension.setWidth(self.width())
         self._lines[number] = dimension
+        self._lines_numbers.append(number)
+        self._lines_numbers.sort()
 
     def clear_lines(self):
         self._lines = {}
+        self._lines_numbers = []
 
     def get_line_from_pos(self, position: QtCore.QPoint) -> Optional[int]:
         """
@@ -103,6 +115,7 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         super().mousePressEvent(event)
+        self._mouse_pressed = True
         pos = self.mapFromGlobal(self.cursor().pos())
         self._line_selected_end = None
         self._line_selected_start = self.get_line_from_pos(pos)
@@ -118,6 +131,7 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
         super().mouseReleaseEvent(event)
+        self._mouse_pressed = False
         self.line_selection_changed.emit()
         self.update()
 
@@ -136,10 +150,9 @@ class LineSideBarWidget(QtWidgets.QWidget):
             self,
         )
 
-        qstyleoption = QtWidgets.QStyleOptionViewItem()
-        qstyleoption.initFrom(self)
-
         for line_number, line_geo in self._lines.items():
+            qstyleoption = QtWidgets.QStyleOptionViewItem()
+            qstyleoption.initFrom(self)
             qstyleoption.rect = line_geo.toRect()
 
             # configure for :hover
@@ -155,6 +168,16 @@ class LineSideBarWidget(QtWidgets.QWidget):
                 qstyleoption.state = (
                     qstyleoption.state | QtWidgets.QStyle.State_MouseOver
                 )
+            # configure for :first and :last
+            if line_number == self._lines_numbers[0]:
+                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.Beginning
+            elif line_number == self._lines_numbers[-1]:
+                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.End
+            else:
+                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.Invalid
+
+            if line_has_focus and self._mouse_pressed:
+                qstyleoption.state = qstyleoption.state | QtWidgets.QStyle.State_Sunken
 
             # draw line's cell
             self.style().drawPrimitive(
