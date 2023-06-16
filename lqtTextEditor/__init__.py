@@ -1,2 +1,2 @@
-from ._numbered import LinePlainTextEdit
-from ._numbered import LineSideBarWidget
+from ._linePlainTextEdit import LinePlainTextEdit
+from ._lineSideBar import LineSideBarWidget
