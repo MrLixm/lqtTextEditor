@@ -34,6 +34,8 @@ class LineSideBarWidget(QtWidgets.QWidget):
         self._line_selected_start: Optional[int] = None
         self._line_selected_end: Optional[int] = None
 
+        self.setAttribute(QtCore.Qt.WA_Hover, True)
+
     @property
     def lines_selected_range(self) -> list[int]:
         """
@@ -92,6 +94,13 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
     # Overrides
 
+    def event(self, event: QtCore.QEvent) -> bool:
+        # HACK: we draw each line as an individual item in paintEvent but events are
+        # still triggered on the global parent widget. So repaint more often.
+        if event.type() in (QtCore.QEvent.HoverMove, QtCore.QEvent.HoverLeave):
+            self.repaint()
+        return super().event(event)
+
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         super().mousePressEvent(event)
         pos = self.mapFromGlobal(self.cursor().pos())
@@ -115,7 +124,9 @@ class LineSideBarWidget(QtWidgets.QWidget):
     def paintEvent(self, event: QtGui.QPaintEvent):
         super().paintEvent(event)
         qpainter = QtGui.QPainter(self)
+        cursor_position = self.mapFromGlobal(self.cursor().pos())
 
+        # draw the whole sidebar background as regular QWidget
         qstyleoption = QtWidgets.QStyleOption()
         qstyleoption.initFrom(self)
         self.style().drawPrimitive(
@@ -125,7 +136,34 @@ class LineSideBarWidget(QtWidgets.QWidget):
             self,
         )
 
+        qstyleoption = QtWidgets.QStyleOptionViewItem()
+        qstyleoption.initFrom(self)
+
         for line_number, line_geo in self._lines.items():
+            qstyleoption.rect = line_geo.toRect()
+
+            # configure for :hover
+            line_has_focus = line_geo.contains(cursor_position)
+            if (
+                qstyleoption.state & QtWidgets.QStyle.State_MouseOver
+                and not line_has_focus
+            ):
+                qstyleoption.state = (
+                    qstyleoption.state ^ QtWidgets.QStyle.State_MouseOver
+                )
+            if line_has_focus:
+                qstyleoption.state = (
+                    qstyleoption.state | QtWidgets.QStyle.State_MouseOver
+                )
+
+            # draw line's cell
+            self.style().drawPrimitive(
+                QtWidgets.QStyle.PE_PanelItemViewItem,
+                qstyleoption,
+                qpainter,
+                self,
+            )
+
             color_role = QtGui.QPalette.ColorRole.Text
 
             if line_number in self.lines_selected_range:

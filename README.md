@@ -19,6 +19,7 @@ Works well for code editing. Features :
 - "Jump to Line" dialog on Ctrl+G
 - no performance difference with regular QPlainTextEdit widget.
   - performance hit when you have a lot of line hided at the end of the document and you scroll to the bottom
+- advanced styling with stylesheets (see below)
 
 > Note : Line numbers are visually expressed starting from 1, but starts from 0 in the code.
 
@@ -46,6 +47,14 @@ QWidget.LineSideBarWidget{
   color: rgb(150,150,150);
   background-color: rgb(55,55,58);
   border-right: 1px solid rgb(60,60,60);
+}
+/*it's possible to style each line "box" with the ::item selector */
+QWidget.LineSideBarWidget::item{
+    border-bottom: 1px solid rgb(60,60,60);
+}
+/*hover works too*/
+QWidget.LineSideBarWidget::item:hover{
+    background-color: rgb(65,65,70);
 }
 QWidget.LinePlainTextEdit{
   font-family: monospace;
