@@ -17,7 +17,8 @@ Works well for code editing. Features :
 - indentation and unindentation with custom characters
 - line hiding/showing/isolating
 - "Jump to Line" dialog on Ctrl+G
-- no performance difference with regular QPlainTextEdit widget.
+- no big performance difference with regular QPlainTextEdit widget.
+  - triggering repaint more often
   - performance hit when you have a lot of line hided at the end of the document and you scroll to the bottom
 - advanced styling with stylesheets (see below)
 
@@ -56,16 +57,28 @@ QWidget.LineSideBarWidget::item{
 QWidget.LineSideBarWidget::item:hover{
     background-color: rgb(65,65,70);
 }
-/* and also :                   */
+/* and also :                         */
 /* ::item:first (of visible lines)    */
 /* ::item:last  (of visible lines)    */
 /* ::item:pressed                     */
 /* ::item:selected                    */
 
-/* behave mostly like a regular QPlainTextEdit */
+/* works the same for the QPlainTextEdit */
 QWidget.LinePlainTextEdit{
   font-family: monospace;
   color: rgb(200,200,200);
   background-color: rgb(50,50,55);
 }
+/*where item is the line box*/
+QWidget.LineSideBarWidget::item{
+  border-bottom: 1px solid rgb(60, 60, 65);
+}
+/* and also :                         */
+/* ::item:hover                       */
+/* ::item:first (of visible lines)    */
+/* ::item:last  (of visible lines)    */
+/* ::item:pressed                     */
+/* ::item:selected                    */
+/* ::item:alternate                   */
+
 ```

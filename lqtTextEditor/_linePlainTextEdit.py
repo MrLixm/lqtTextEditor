@@ -4,6 +4,7 @@ from typing import Optional
 from Qt import QtGui
 from Qt import QtCore
 from Qt import QtWidgets
+from Qt.QtWidgets import QStyle
 
 from lqtTextEditor._lineSideBar import LineSideBarWidget
 from lqtTextEditor._jumpToLineDialog import JumpToLineDialog
@@ -25,8 +26,12 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._updating_selection: bool = False
         self._left_margin: int = 0
         self._tab_character = " " * 4
+        self._mouse_pressed = False
 
         self._sidebar = LineSideBarWidget(self)
+
+        # generate event on hovering
+        self.setAttribute(QtCore.Qt.WA_Hover, True)
 
         self.updateRequest.connect(self._update_sidebar)
         self.blockCountChanged.connect(self._on_block_count_changed)
@@ -55,6 +60,15 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         cursor.setPosition(end)
         return cursor.blockNumber()
 
+    def _get_last_visible_block(self) -> QtGui.QTextBlock:
+        """
+        The bottom most block in the viewport.
+        """
+        bottom_right = QtCore.QPoint(
+            self.viewport().width() - 1, self.viewport().height() - 1
+        )
+        return self.cursorForPosition(bottom_right).block()
+
     def _on_block_count_changed(self):
         self._update_sidebar_geo()
         self._update_margins()
@@ -77,6 +91,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
             self.selected_lines_start,
             self.selected_lines_end,
         )
+        self.repaint()
 
     def _on_sidebar_lines_changed(self):
         """
@@ -256,6 +271,13 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
 
     # Overrides
 
+    def event(self, event: QtCore.QEvent) -> bool:
+        # HACK: we draw each line as an individual item in paintEvent but events are
+        # still triggered on the global parent widget. So repaint more often.
+        if event.type() in (QtCore.QEvent.HoverMove, QtCore.QEvent.HoverLeave):
+            self.repaint()
+        return super().event(event)
+
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if event.key() == QtCore.Qt.Key_Backtab:
             self._unindent_selection()
@@ -273,6 +295,77 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
 
         super().keyPressEvent(event)
 
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
+        super().mousePressEvent(event)
+        self._mouse_pressed = True
+        self.repaint()
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
+        super().mouseReleaseEvent(event)
+        self._mouse_pressed = False
+        self.repaint()
+
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         super().resizeEvent(event)
         self._update_sidebar_geo()
+
+    def paintEvent(self, event: QtGui.QPaintEvent):
+        qpainter = QtGui.QPainter(self.viewport())
+
+        cursor_position = self.mapFromGlobal(self.cursor().pos())
+        selected_lines = range(self.selected_lines_start, self.selected_lines_end + 1)
+        last_visible = self._get_last_visible_block()
+        first_block = True
+        block = self.firstVisibleBlock()
+
+        while block.isValid() and block != last_visible:
+            if not block.isVisible():
+                block = block.next()
+                continue
+
+            block_geo = self.blockBoundingGeometry(block)
+            block_geo = block_geo.translated(self.contentOffset())
+
+            qstyleoption = QtWidgets.QStyleOptionViewItem()
+            qstyleoption.initFrom(self)
+            qstyleoption.rect = block_geo.toRect()
+
+            block_has_focus = block_geo.contains(cursor_position)
+
+            # configure for :hover selector
+            if qstyleoption.state & QStyle.State_MouseOver and not block_has_focus:
+                qstyleoption.state = qstyleoption.state ^ QStyle.State_MouseOver
+            if block_has_focus:
+                qstyleoption.state = qstyleoption.state | QStyle.State_MouseOver
+
+            # configure :selected selector
+            if block.blockNumber() in selected_lines:
+                qstyleoption.state = qstyleoption.state | QStyle.State_Selected
+
+            # configure :first :last selector
+            if first_block:
+                qstyleoption.viewItemPosition = qstyleoption.Beginning
+            elif block == last_visible:
+                qstyleoption.viewItemPosition = qstyleoption.End
+            else:
+                qstyleoption.viewItemPosition = qstyleoption.Invalid
+
+            # configure :pressed selector
+            if block_has_focus and self._mouse_pressed:
+                qstyleoption.state = qstyleoption.state | QStyle.State_Sunken
+
+            # configure :alternate selector
+            if block.blockNumber() % 2:
+                qstyleoption.features = qstyleoption.features | qstyleoption.Alternate
+
+            self.style().drawPrimitive(
+                QtWidgets.QStyle.PE_PanelItemViewItem,
+                qstyleoption,
+                qpainter,
+                self,
+            )
+
+            first_block = False
+            block = block.next()
+
+        super().paintEvent(event)
