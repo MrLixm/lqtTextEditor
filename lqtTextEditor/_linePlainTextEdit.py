@@ -100,7 +100,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
             ntimes = end - cursor.blockNumber()
             cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor, ntimes)
 
-        cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
 
         self.setTextCursor(cursor)
 
