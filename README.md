@@ -70,7 +70,7 @@ QWidget.LinePlainTextEdit{
   background-color: rgb(50,50,55);
 }
 /*where item is the line box*/
-QWidget.LineSideBarWidget::item{
+QWidget.LinePlainTextEdit::item{
   border-bottom: 1px solid rgb(60, 60, 65);
 }
 /* and also :                         */
