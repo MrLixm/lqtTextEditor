@@ -1,0 +1,154 @@
+/*
+dark pastel with purple accents
+*/
+
+.QWidget {
+    background-color: rgb(45, 45, 50);
+}
+
+/*SIDEBAR*/
+QWidget.LineSideBarWidget {
+    padding: 8px;
+    font-family: "JetBrains Mono NL", monospace;
+    color: rgb(150, 150, 150);
+    background-color: rgb(55, 55, 58);
+    border-right: 1px solid rgb(65, 65, 194);
+    selection-color: rgb(100, 100, 255);
+}
+
+/*TEXTEDIT*/
+QWidget.LinePlainTextEdit {
+    padding: 8px;
+    font-family: "JetBrains Mono NL", monospace;
+    font-size: 12px;
+    color: rgb(200, 200, 200);
+    background-color: rgb(50, 50, 55);
+    border: unset;
+    selection-background-color: rgb(80, 80, 105);
+}
+
+/* ITEMS*/
+QWidget.LinePlainTextEdit::item {
+    border-bottom: 1px solid qlineargradient(
+    x1:0,
+    y1: 0,
+    x2: 1,
+    y2: 0,
+    stop: 0 rgb(50, 50, 50),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+QWidget.LineSideBarWidget::item {
+    border-bottom: 1px solid qlineargradient(
+    x1:1,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    stop: 0 rgb(40, 40, 40),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+QWidget.LinePlainTextEdit::item:first {
+    border-top: 2px solid qlineargradient(
+    x1:0,
+    y1: 0,
+    x2: 1,
+    y2: 0,
+    stop: 0 rgb(50, 50, 150),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+QWidget.LinePlainTextEdit::item:last {
+    border-bottom: 2px solid qlineargradient(
+    x1:0,
+    y1: 0,
+    x2: 1,
+    y2: 0,
+    stop: 0 rgb(50, 50, 150),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+QWidget.LineSideBarWidget::item:first {
+    border-top: 2px solid qlineargradient(
+    x1:1,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    stop: 0 rgb(50, 50, 150),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+QWidget.LineSideBarWidget::item:last {
+    border-bottom: 2px solid qlineargradient(
+    x1:1,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    stop: 0 rgb(50, 50, 150),
+    stop: 1 rgb(0, 0, 0, 0));
+}
+
+/* COMMON ITEMS*/
+
+QWidget.LinePlainTextEdit::item:alternate, QWidget.LineSideBarWidget::item:alternate {
+    background-color: rgb(52, 52, 57);
+}
+
+QWidget.LinePlainTextEdit::item:hover, QWidget.LineSideBarWidget::item:hover {
+    background-color: rgb(65, 65, 70);
+}
+
+QWidget.LinePlainTextEdit::item:selected, QWidget.LineSideBarWidget::item:selected {
+    background-color: rgb(45, 45, 50);
+}
+
+QWidget.LinePlainTextEdit::item:selected {
+    border-left: 1px solid rgb(100, 100, 255);
+}
+
+QWidget.LineSideBarWidget::item:selected {
+    border-right: 4px solid rgb(100, 100, 255);
+}
+
+QWidget.LinePlainTextEdit::item:pressed, QWidget.LineSideBarWidget::item:pressed {
+    background-color: rgb(65, 65, 150);
+}
+
+
+/* SCROLLBAR */
+
+QWidget.LinePlainTextEdit QScrollBar:vertical {
+    background: transparent;
+    width: 15px;
+    margin: 10px 0 10px 0;
+    border-radius: 5px;
+}
+
+QWidget.LinePlainTextEdit QScrollBar::handle:vertical {
+    background: rgb(80, 80, 85);
+    border-radius: 5px;
+    min-height: 20px;
+}
+
+QWidget.LinePlainTextEdit QScrollBar::add-line:vertical, QWidget.LinePlainTextEdit QScrollBar::sub-line:vertic {
+    background: rgb(70, 70, 75);
+    border-radius: 5px;
+    height: 15px;
+    subcontrol-origin: margin;
+}
+
+QWidget.LinePlainTextEdit QScrollBar::add-line:vertical {
+    subcontrol-position: bottom;
+}
+
+QWidget.LinePlainTextEdit QScrollBar::sub-line:vertical {
+    subcontrol-position: top;
+}
+
+QWidget.LinePlainTextEdit QScrollBar::up-arrow:vertical, QWidget.LinePlainTextEdit QScrollBar::down-arrow:vertical {
+
+}
+
+QWidget.LinePlainTextEdit QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}

@@ -82,3 +82,6 @@ QWidget.LinePlainTextEdit::item{
 /* ::item:alternate                   */
 
 ```
+
+You can find a full example in [theme.dark-test.qss](tests/theme.dark-test.qss),
+loaded in [test_stylesheet.py](tests/test_stylesheet.py)
