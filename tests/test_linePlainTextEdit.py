@@ -29,13 +29,6 @@ dexter, alter cursuss grauiter reperire de velox, gratis sensorem.
 """
 
 
-app = QtWidgets.QApplication()
-
-widget_main = QtWidgets.QWidget()
-layout_main = QtWidgets.QVBoxLayout()
-widget_main.setLayout(layout_main)
-
-
 @contextlib.contextmanager
 def time_it(op_name=""):
     start_time = time.time()
@@ -45,7 +38,28 @@ def time_it(op_name=""):
         print(f"{op_name} finished in {round(time.time() - start_time, 6)}s")
 
 
+@contextlib.contextmanager
+def temporary_qapp():
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+
+    def callback():
+        QtWidgets.QApplication.instance().exit()
+
+    timer = QtCore.QTimer()
+    timer.timeout.connect(callback)
+    try:
+        yield
+    finally:
+        timer.start(1)
+        app.exec_()
+
+
+@temporary_qapp()
 def test_main():
+    widget_main = QtWidgets.QWidget()
+    layout_main = QtWidgets.QVBoxLayout()
+    widget_main.setLayout(layout_main)
+
     layout_header = QtWidgets.QHBoxLayout()
     widget = lqtTextEditor.LinePlainTextEdit()
     widget2 = lqtTextEditor.LinePlainTextEdit()
@@ -95,8 +109,16 @@ def test_main():
     with time_it("isolate_lines"):
         widget3.isolate_lines(list(range(5, 90000)))
 
+    widget_main.resize(500, 300)
+    widget_main.show()
 
+
+@temporary_qapp()
 def test_qtwidgets():
+    widget_main = QtWidgets.QWidget()
+    layout_main = QtWidgets.QVBoxLayout()
+    widget_main.setLayout(layout_main)
+
     widget = QtWidgets.QPlainTextEdit()
     layout_main.addWidget(widget)
 
@@ -107,12 +129,14 @@ def test_qtwidgets():
     with time_it("setPlainText"):
         widget.setPlainText(heavy_text)
 
-
-if __name__ == "__main__":
-    test_main()
-    # test_qtwidgets()
-
     widget_main.resize(500, 300)
     widget_main.show()
 
-    sys.exit(app.exec_())
+
+def main():
+    test_main()
+    test_qtwidgets()
+
+
+if __name__ == "__main__":
+    main()
