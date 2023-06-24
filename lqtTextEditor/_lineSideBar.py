@@ -5,6 +5,10 @@ from Qt import QtGui
 from Qt import QtCore
 from Qt import QtWidgets
 
+from lqtTextEditor._line import TextLine
+from lqtTextEditor._line import TextLineBuffer
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -22,19 +26,8 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._lines: dict[int, QtCore.QRectF] = {}
-        """
-        List of line with its respective dimension for each.
 
-        Line number starts at 0.
-        """
-
-        self._lines_numbers: list[int] = []
-        """
-        Ordered list of all the line numbers.
-        
-        Mainly to keep compatibility with python 2 which have unordered dicts.
-        """
+        self._lines: TextLineBuffer = TextLineBuffer()
 
         self._mouse_pressed: bool = False
 
@@ -76,33 +69,9 @@ class LineSideBarWidget(QtWidgets.QWidget):
         width = width * len(str(max_lines))
         return width + (self.margins_side * 2)
 
-    def add_line(self, number: int, dimension: QtCore.QRectF):
-        dimension.setWidth(self.width())
-        self._lines[number] = dimension
-        self._lines_numbers.append(number)
-        self._lines_numbers.sort()
-
-    def clear_lines(self):
-        self._lines = {}
-        self._lines_numbers = []
-
-    def get_line_from_pos(self, position: QtCore.QPoint) -> Optional[int]:
-        """
-        Args:
-            position: expressed in local widget coordinates.
-
-        Returns:
-            line number for the gicne position
-        """
-        for line_number, line_geo in self._lines.items():
-            if line_geo.contains(QtCore.QPointF(position)):
-                return line_number
-        return None
-
-    def set_selected_lines(self, line_start, line_end):
-        self._line_selected_start = line_start
-        self._line_selected_end = line_end
-        self.update()
+    def set_line_buffer(self, buffer: TextLineBuffer):
+        self._lines = buffer
+        self.repaint()
 
     # Overrides
 
@@ -118,14 +87,22 @@ class LineSideBarWidget(QtWidgets.QWidget):
         self._mouse_pressed = True
         pos = self.mapFromGlobal(self.cursor().pos())
         self._line_selected_end = None
-        self._line_selected_start = self.get_line_from_pos(pos)
+
+        self._line_selected_start = self._lines.get_line_from_position(pos)
+        if self._line_selected_start:
+            self._line_selected_start = self._line_selected_start.number
+
         self.line_selection_changed.emit()
         self.update()
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
         super().mouseMoveEvent(event)
         pos = self.mapFromGlobal(self.cursor().pos())
-        self._line_selected_end = self.get_line_from_pos(pos)
+
+        self._line_selected_end = self._lines.get_line_from_position(pos)
+        if self._line_selected_end:
+            self._line_selected_end = self._line_selected_end.number
+
         self.line_selection_changed.emit()
         self.update()
 
@@ -138,7 +115,6 @@ class LineSideBarWidget(QtWidgets.QWidget):
     def paintEvent(self, event: QtGui.QPaintEvent):
         super().paintEvent(event)
         qpainter = QtGui.QPainter(self)
-        cursor_position = self.mapFromGlobal(self.cursor().pos())
 
         # draw the whole sidebar background as regular QWidget
         qstyleoption = QtWidgets.QStyleOption()
@@ -150,48 +126,21 @@ class LineSideBarWidget(QtWidgets.QWidget):
             self,
         )
 
-        for line_number, line_geo in self._lines.items():
+        for line in self._lines:
             color_role = QtGui.QPalette.ColorRole.Text
 
             qstyleoption = QtWidgets.QStyleOptionViewItem()
             qstyleoption.initFrom(self)
-            qstyleoption.rect = line_geo.toRect()
+            line.apply_on_qstyle_option(qstyleoption)
 
-            # configure for :hover
-            line_has_focus = line_geo.contains(cursor_position)
-            if (
-                qstyleoption.state & QtWidgets.QStyle.State_MouseOver
-                and not line_has_focus
-            ):
-                qstyleoption.state = (
-                    qstyleoption.state ^ QtWidgets.QStyle.State_MouseOver
-                )
-            if line_has_focus:
-                qstyleoption.state = (
-                    qstyleoption.state | QtWidgets.QStyle.State_MouseOver
-                )
-            # configure for :first and :last
-            if line_number == self._lines_numbers[0]:
-                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.Beginning
-            elif line_number == self._lines_numbers[-1]:
-                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.End
-            else:
-                qstyleoption.viewItemPosition = QtWidgets.QStyleOptionViewItem.Invalid
-            # configure for :pressed
-            if line_has_focus and self._mouse_pressed:
-                qstyleoption.state = qstyleoption.state | QtWidgets.QStyle.State_Sunken
-            # configure for :selected
-            if line_number in self.lines_selected_range:
-                qstyleoption.state = (
-                    qstyleoption.state | QtWidgets.QStyle.State_Selected
-                )
+            if line.selected:
                 # we draw first using the palette so if no stylesheet, we still
                 # have an effect visible
                 highlight_color = self.palette().text()
                 highlight_color.setColor(
                     QtGui.QColor(*highlight_color.color().toTuple()[:-1], 30)
                 )
-                qpainter.fillRect(line_geo, highlight_color)
+                qpainter.fillRect(line.geometry, highlight_color)
                 color_role = QtGui.QPalette.ColorRole.HighlightedText
 
             # draw line's cell
@@ -202,7 +151,12 @@ class LineSideBarWidget(QtWidgets.QWidget):
                 self,
             )
 
-            text_geo = line_geo.adjusted(self.margins_side, 0, -self.margins_side, 0)
+            text_geo = line.geometry.adjusted(
+                self.margins_side,
+                0,
+                -self.margins_side,
+                0,
+            )
 
             self.style().drawItemText(
                 qpainter,
@@ -210,6 +164,6 @@ class LineSideBarWidget(QtWidgets.QWidget):
                 QtCore.Qt.AlignRight,
                 self.palette(),
                 True,
-                str(line_number + 1),
+                str(line.number + 1),
                 color_role,
             )
