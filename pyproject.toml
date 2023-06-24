@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lqttexteditor"
-version = "0.8.0"
+version = "0.9.0"
 description = "A more advanced text editor for PyQt"
 authors = ["Liam Collod <monsieurlixm@gmail.com>"]
 readme = "README.md"
