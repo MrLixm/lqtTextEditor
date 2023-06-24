@@ -2,6 +2,8 @@
 
 More advanced text editor in PyQt.
 
+![demo-stylesheet.gif](doc/img/demo-stylesheet.gif)
+
 ## Compatibility
 
 - [`Qt.py`](https://github.com/mottosso/Qt.py) Is being used to handle compatibility
@@ -85,3 +87,5 @@ QWidget.LinePlainTextEdit::item{
 
 You can find a full example in [theme.dark-test.qss](tests/theme.dark-test.qss),
 loaded in [test_stylesheet.py](tests/test_stylesheet.py)
+
+![demo-stylesheet.gif](doc/img/demo-stylesheet.gif)
