@@ -81,6 +81,16 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._update_margins()
         self.repaint()
 
+    def _on_hover_event(self):
+        """
+        Hover is the most often triggered event, so it has its own method for
+        performance optimisations.
+        """
+        cursor_position = self.mapFromGlobal(self.cursor().pos())
+
+        for line in self._lines:
+            line.hovered = line.geometry.contains(cursor_position)
+
     def _on_jump_to_line(self):
         dialog = JumpToLineDialog(max_lines=self.blockCount())
         result = dialog.exec_()
@@ -133,7 +143,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
     def _on_update_requested(self):
         self._update_lines()
         self._update_sidebar()
-        self.repaint()
+        self.update()
 
     def _update_lines(self):
         """
@@ -316,9 +326,9 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         # HACK: we draw each line as an individual item in paintEvent but events are
         # still triggered on the global parent widget. So repaint more often.
         if event.type() in (QtCore.QEvent.HoverMove, QtCore.QEvent.HoverLeave):
-            self._update_lines()
+            self._on_hover_event()
             self._update_sidebar()
-            self.repaint()
+            self.update()
         return super().event(event)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
