@@ -39,6 +39,21 @@ editor = lqtTextEditor.LinePlainTextEdit()
 editor.setPlainText("Hello world !")
 ```
 
+Here is some options you can configure
+
+```python
+import lqtTextEditor
+
+editor = lqtTextEditor.LinePlainTextEdit()
+editor.setPlainText("Hello world !")
+editor.set_tab_character("\t")
+# lead to visual issue on the default Qt style when enabled
+editor.set_alternating_row_colors(True)
+# space between text and sidebar
+editor.set_left_margin(15)
+```
+
+
 ## Styling 
 
 With stylesheet :
