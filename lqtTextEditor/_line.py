@@ -43,7 +43,11 @@ class TextLine:
             alternate=self.alternate,
         )
 
-    def apply_on_qstyle_option(self, qstyleoption: QtWidgets.QStyleOptionViewItem):
+    def apply_on_qstyle_option(
+        self,
+        qstyleoption: QtWidgets.QStyleOptionViewItem,
+        apply_alternate: bool = True,
+    ):
         """
         Transfer this instance attributes to the given QStyleOptionViewItem.
         """
@@ -66,7 +70,7 @@ class TextLine:
             qstyleoption.state = qstyleoption.state | QStyle.State_Sunken
 
         # configure :alternate selector
-        if self.alternate:
+        if self.alternate and apply_alternate:
             qstyleoption.features = qstyleoption.features | qstyleoption.Alternate
 
 

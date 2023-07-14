@@ -49,6 +49,7 @@ widget_main.setLayout(layout_main)
 
 widget = lqtTextEditor.LinePlainTextEdit()
 widget.setPlainText(demoText * 1000)
+widget.set_alternating_row_colors(True)
 layout_main.addWidget(widget)
 
 widget_main.resize(500, 300)

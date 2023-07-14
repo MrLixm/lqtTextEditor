@@ -28,6 +28,7 @@ class LineSideBarWidget(QtWidgets.QWidget):
         super().__init__(parent)
 
         self._lines: TextLineBuffer = TextLineBuffer()
+        self._alternating_row_colors: bool = False
 
         self._mouse_pressed: bool = False
 
@@ -68,6 +69,13 @@ class LineSideBarWidget(QtWidgets.QWidget):
         max_lines = max(max_line, 9999)
         width = width * len(str(max_lines))
         return width + (self.margins_side * 2)
+
+    def set_alternating_row_colors(self, enable: bool):
+        """
+        True to allow alternating rows to have a different color if it was defined
+        in the style.
+        """
+        self._alternating_row_colors = enable
 
     def set_line_buffer(self, buffer: TextLineBuffer):
         self._lines = buffer
@@ -131,7 +139,9 @@ class LineSideBarWidget(QtWidgets.QWidget):
 
             qstyleoption = QtWidgets.QStyleOptionViewItem()
             qstyleoption.initFrom(self)
-            line.apply_on_qstyle_option(qstyleoption)
+            line.apply_on_qstyle_option(
+                qstyleoption, apply_alternate=self._alternating_row_colors
+            )
 
             if line.selected:
                 # we draw first using the palette so if no stylesheet, we still

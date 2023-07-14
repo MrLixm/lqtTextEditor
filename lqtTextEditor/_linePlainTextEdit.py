@@ -29,6 +29,7 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         self._tab_character = " " * 4
         self._mouse_pressed = False
         self._lines: TextLineBuffer = TextLineBuffer()
+        self._alternating_row_colors = False
 
         self._sidebar = LineSideBarWidget(self)
 
@@ -257,6 +258,14 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         cursor = QtGui.QTextCursor(block)
         self.setTextCursor(cursor)
 
+    def set_alternating_row_colors(self, enable: bool):
+        """
+        True to allow alternating rows to have a different color if it was defined
+        in the style.
+        """
+        self._alternating_row_colors = enable
+        self._sidebar.set_alternating_row_colors(enable)
+
     def set_left_margin(self, margin: int):
         """
         Set the margin size for the left side of the viewport.
@@ -374,7 +383,9 @@ class LinePlainTextEdit(QtWidgets.QPlainTextEdit):
         for line in self._lines:
             qstyleoption = QtWidgets.QStyleOptionViewItem()
             qstyleoption.initFrom(self)
-            line.apply_on_qstyle_option(qstyleoption)
+            line.apply_on_qstyle_option(
+                qstyleoption, apply_alternate=self._alternating_row_colors
+            )
 
             self.style().drawPrimitive(
                 QtWidgets.QStyle.PE_PanelItemViewItem,
